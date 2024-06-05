@@ -17,84 +17,69 @@ import android.util.Log;
 
 import org.briarproject.briar.android.BriarApplicationImpl;
 
-public class StorageUtils
-{
-	public String storeOnStorage(String content, String fileName)
-	{
-		InputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-		File yourDir = BriarApplicationImpl.getInstance().getDir("AR", Context.MODE_PRIVATE);
+public class StorageUtils {
+	public String storeOnStorage(String content, String fileName) {
+		InputStream inputStream = new ByteArrayInputStream(
+				content.getBytes(StandardCharsets.UTF_8));
+		File yourDir = BriarApplicationImpl.getInstance()
+				.getDir("AR", Context.MODE_PRIVATE);
 
 		File[] fileList = yourDir.listFiles();
-		if (yourDir != null && fileList != null)
-		{
-		}
-		else
-		{
+		if (yourDir != null && fileList != null) {
+		} else {
 			yourDir.mkdirs();
 		}
 		File file = new File(yourDir + "/" + fileName);
-		try
-		{
+		try {
 			file.createNewFile();
 			FileOutputStream fos = new FileOutputStream(file);
 			fos.write(getBytesFromInputStream(inputStream));
 			fos.close();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return file.getPath();
 	}
 
-	public byte[] getBytesFromInputStream(InputStream is)
-	{
-		try
-		{
+	public byte[] getBytesFromInputStream(InputStream is) {
+		try {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			byte[] buffer = new byte[0xFFFF];
 
-			for (int len; (len = is.read(buffer)) != -1;)
+			for (int len; (len = is.read(buffer)) != -1; )
 				os.write(buffer, 0, len);
 
 			os.flush();
 
 			return os.toByteArray();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			return null;
 		}
 	}
 
-	public String readFile(String name)
-	{
-
+	public String readFile(String name) {
 		String everything = "";
-		try
-		{
-			BufferedReader br = new BufferedReader(new FileReader("/data/user/0/org.briarproject.briar.android.debug/app_AR/" + name));
-			try
-			{
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(
+					"/data/user/0/org.briarproject.briar.android.debug/app_AR/" +
+							name));
+			try {
 				StringBuilder sb = new StringBuilder();
 				String line = br.readLine();
 
-				while (line != null)
-				{
+				while (line != null) {
 					sb.append(line);
 					sb.append(System.lineSeparator());
 					line = br.readLine();
 				}
 				everything = sb.toString();
-			}
-			finally
-			{
+			} finally {
 				br.close();
 			}
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found");
+		} catch (IOException e) {
+			System.out.println("IO Exception");
 		}
 		return everything;
 	}

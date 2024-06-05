@@ -11,75 +11,61 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-public class StorageUtils
-{
-	public byte[] readFromStorage(String name)
-	{
+public class StorageUtils {
+	public byte[] readFromStorage(String name) {
 		byte[] dataArray = null;
-		try
-		{
-			File myFile = new File("/data/user/0/org.briarproject.briar.android.debug/app_AR/" + name);
+		try {
+			File myFile = new File(
+					"/data/user/0/org.briarproject.briar.android.debug/app_AR/" +
+							name);
 			FileInputStream fis = new FileInputStream(myFile);
 			dataArray = new byte[fis.available()];
 			fis.close();
-		}
-		catch (FileNotFoundException e)
-		{
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return dataArray;
 	}
 
-	public String readFile(String name)
-	{
+	public String readFile(String name) {
 
 		String everything = "";
-		try
-		{
-			BufferedReader br = new BufferedReader(new FileReader("/data/user/0/org.briarproject.briar.android.debug/app_AR/" + name));
-			try
-			{
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(
+					"/data/user/0/org.briarproject.briar.android.debug/app_AR/" +
+							name));
+			try {
 				StringBuilder sb = new StringBuilder();
 				String line = br.readLine();
 
-				while (line != null)
-				{
+				while (line != null) {
 					sb.append(line);
 					sb.append(System.lineSeparator());
 					line = br.readLine();
 				}
 				everything = sb.toString();
-			}
-			finally
-			{
+			} finally {
 				br.close();
 			}
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found");
+		} catch (IOException e) {
+			System.out.println("IO Exception");
 		}
 		return everything;
 	}
 
-	public String openFileToString(byte[] bytes)
-	{
+	public String openFileToString(byte[] bytes) {
 		String fileString = "";
-		try
-		{
+		try {
 			fileString = "";
 
-			for (int i = 0; i < bytes.length; i++)
-			{
+			for (int i = 0; i < bytes.length; i++) {
 				fileString += (char) bytes[i];
 			}
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return fileString;
