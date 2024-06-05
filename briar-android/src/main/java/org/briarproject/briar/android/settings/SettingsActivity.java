@@ -7,8 +7,13 @@ import android.view.MenuItem;
 import org.briarproject.briar.R;
 import org.briarproject.briar.android.activity.ActivityComponent;
 import org.briarproject.briar.android.activity.BriarActivity;
+import org.briarproject.briar.android.util.StorageUtils;
 import org.briarproject.nullsafety.MethodsNotNullByDefault;
 import org.briarproject.nullsafety.ParametersNotNullByDefault;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -58,6 +63,15 @@ public class SettingsActivity extends BriarActivity
 		}
 
 		setContentView(R.layout.activity_settings);
+
+
+
+//		StorageUtils storageUtils = new StorageUtils();
+//
+//		String str = "String contents";
+//		InputStream is =
+//				new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
+//		storageUtils.storeOnStorage(is, "ar");
 	}
 
 	@Override

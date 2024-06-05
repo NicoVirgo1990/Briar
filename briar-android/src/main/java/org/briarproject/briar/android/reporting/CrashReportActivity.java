@@ -31,13 +31,17 @@ import static java.util.Objects.requireNonNull;
 
 @MethodsNotNullByDefault
 @ParametersNotNullByDefault
-public class CrashReportActivity extends BaseActivity
-		implements BaseFragmentListener {
+public class CrashReportActivity extends BaseActivity implements BaseFragmentListener
+{
 
 	public static final String EXTRA_INITIAL_COMMENT = "initialComment";
+
 	public static final String EXTRA_THROWABLE = "throwable";
+
 	public static final String EXTRA_APP_START_TIME = "appStartTime";
+
 	public static final String EXTRA_APP_LOGCAT = "logcat";
+
 	public static final String EXTRA_MEMORY_STATS = "memoryStats";
 
 	@Inject
@@ -46,14 +50,15 @@ public class CrashReportActivity extends BaseActivity
 	private ReportViewModel viewModel;
 
 	@Override
-	public void injectActivity(ActivityComponent component) {
+	public void injectActivity(ActivityComponent component)
+	{
 		component.inject(this);
-		viewModel = new ViewModelProvider(this, viewModelFactory)
-				.get(ReportViewModel.class);
+		viewModel = new ViewModelProvider(this, viewModelFactory).get(ReportViewModel.class);
 	}
 
 	@Override
-	public void onCreate(@Nullable Bundle savedInstanceState) {
+	public void onCreate(@Nullable Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_dev_report);
 
@@ -62,14 +67,14 @@ public class CrashReportActivity extends BaseActivity
 		Throwable t = (Throwable) intent.getSerializableExtra(EXTRA_THROWABLE);
 		long appStartTime = intent.getLongExtra(EXTRA_APP_START_TIME, -1);
 		byte[] logKey = intent.getByteArrayExtra(EXTRA_APP_LOGCAT);
-		MemoryStats memoryStats =
-				(MemoryStats) intent.getSerializableExtra(EXTRA_MEMORY_STATS);
+		MemoryStats memoryStats = (MemoryStats) intent.getSerializableExtra(EXTRA_MEMORY_STATS);
 		viewModel.init(t, appStartTime, logKey, initialComment, memoryStats);
 		viewModel.getShowReport().observeEvent(this, show -> {
 			if (show) displayFragment(true);
 		});
 		viewModel.getCloseReport().observeEvent(this, res -> {
-			if (res != 0) {
+			if (res != 0)
+			{
 				Toast.makeText(this, res, LENGTH_LONG).show();
 			}
 			exit();
@@ -82,35 +87,39 @@ public class CrashReportActivity extends BaseActivity
 	}
 
 	@Override
-	public void runOnDbThread(Runnable runnable) {
+	public void runOnDbThread(Runnable runnable)
+	{
 		throw new AssertionError("deprecated!!!");
 	}
 
 	@Override
-	public void onBackPressed() {
+	public void onBackPressed()
+	{
 		exit();
 	}
 
-	private void displayFragment(boolean showReportForm) {
+	private void displayFragment(boolean showReportForm)
+	{
 		BaseFragment f;
-		if (showReportForm) {
+		if (showReportForm)
+		{
 			f = new ReportFormFragment();
 			requireNonNull(getSupportActionBar()).show();
-		} else {
+		}
+		else
+		{
 			f = new CrashFragment();
 			requireNonNull(getSupportActionBar()).hide();
 		}
-		getSupportFragmentManager().beginTransaction()
-				.replace(R.id.fragmentContainer, f, f.getUniqueTag())
-				.commit();
+		getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, f, f.getUniqueTag()).commit();
 	}
 
-	private void exit() {
-		if (!viewModel.isFeedback()) {
+	private void exit()
+	{
+		if (!viewModel.isFeedback())
+		{
 			Intent i = new Intent(this, HideUiActivity.class);
-			i.addFlags(FLAG_ACTIVITY_NEW_TASK
-					| FLAG_ACTIVITY_NO_ANIMATION
-					| FLAG_ACTIVITY_CLEAR_TASK);
+			i.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_NO_ANIMATION | FLAG_ACTIVITY_CLEAR_TASK);
 			startActivity(i);
 			// crash reports run in their own process that we should kill now
 			// otherwise it keeps running and e.g. doesn't pick up theme changes

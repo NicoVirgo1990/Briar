@@ -82,6 +82,7 @@ public class AndroidTorPluginFactory extends TorPluginFactory {
 	TorPlugin createPluginInstance(Backoff backoff,
 			TorRendezvousCrypto torRendezvousCrypto, PluginCallback callback,
 			String architecture) {
+
 		TorWrapper tor = new AndroidTorWrapper(app, wakeLockManager,
 				ioExecutor, eventExecutor, architecture, torDirectory,
 				torSocksPort, torControlPort);

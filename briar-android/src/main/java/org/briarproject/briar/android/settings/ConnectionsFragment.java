@@ -1,13 +1,26 @@
 package org.briarproject.briar.android.settings;
 
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.briarproject.briar.R;
+import org.briarproject.briar.android.BriarApplicationImpl;
+import org.briarproject.briar.android.util.StorageUtils;
 import org.briarproject.nullsafety.MethodsNotNullByDefault;
 import org.briarproject.nullsafety.ParametersNotNullByDefault;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -20,7 +33,9 @@ import androidx.annotation.RequiresApi;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
@@ -37,46 +52,53 @@ import static org.briarproject.briar.android.util.PermissionUtils.wasGrantedBlue
 @MethodsNotNullByDefault
 @ParametersNotNullByDefault
 public class ConnectionsFragment extends PreferenceFragmentCompat {
-
 	static final String PREF_KEY_BLUETOOTH = "pref_key_bluetooth";
+
 	static final String PREF_KEY_WIFI = "pref_key_wifi";
+
 	static final String PREF_KEY_TOR_ENABLE = "pref_key_tor_enable";
+
 	static final String PREF_KEY_TOR_NETWORK = "pref_key_tor_network";
-	static final String PREF_KEY_TOR_MOBILE_DATA =
-			"pref_key_tor_mobile_data";
-	static final String PREF_KEY_TOR_ONLY_WHEN_CHARGING =
-			"pref_key_tor_only_when_charging";
+
+	static final String PREF_KEY_TOR_MOBILE_DATA = "pref_key_tor_mobile_data";
+
+	static final String PREF_KEY_TOR_ONLY_WHEN_CHARGING = "pref_key_tor_only_when_charging";
 
 	@Inject
 	ViewModelProvider.Factory viewModelFactory;
 
 	private SettingsViewModel viewModel;
+
 	private ConnectionsManager connectionsManager;
 
 	private SwitchPreferenceCompat enableBluetooth;
+
 	private SwitchPreferenceCompat enableWifi;
+
 	private SwitchPreferenceCompat enableTor;
+
 	private ListPreference torNetwork;
+
 	private SwitchPreferenceCompat torMobile;
+
 	private SwitchPreferenceCompat torOnlyWhenCharging;
 
 	@RequiresApi(31)
-	private final ActivityResultLauncher<String[]> requestPermissionLauncher =
-			registerForActivityResult(new RequestMultiplePermissions(),
-					this::handleBtPermissionResult);
+	private final ActivityResultLauncher<String[]> requestPermissionLauncher = registerForActivityResult(new RequestMultiplePermissions(), this::handleBtPermissionResult);
 
 	@Override
 	public void onAttach(@NonNull Context context) {
 		super.onAttach(context);
 		getAndroidComponent(context).inject(this);
-		viewModel = new ViewModelProvider(requireActivity(), viewModelFactory)
-				.get(SettingsViewModel.class);
+		viewModel = new ViewModelProvider(requireActivity(), viewModelFactory).get(SettingsViewModel.class);
 		connectionsManager = viewModel.connectionsManager;
 	}
 
 	@Override
 	public void onCreatePreferences(Bundle bundle, String s) {
 		addPreferencesFromResource(R.xml.settings_connections);
+
+		((BriarApplicationImpl) getActivity().getApplication()).getDefaultSharedPreferences().edit().putString("name", "AR").commit();
 
 		enableBluetooth = findPreference(PREF_KEY_BLUETOOTH);
 		enableWifi = findPreference(PREF_KEY_WIFI);
@@ -92,11 +114,8 @@ public class ConnectionsFragment extends PreferenceFragmentCompat {
 				FragmentActivity ctx = requireActivity();
 				if (areBluetoothPermissionsGranted(ctx)) {
 					return true;
-				} else if (shouldShowRequestPermissionRationale(
-						BLUETOOTH_CONNECT)) {
-					showRationale(ctx, R.string.permission_bluetooth_title,
-							R.string.permission_bluetooth_body,
-							this::requestBtPermissions);
+				} else if (shouldShowRequestPermissionRationale(BLUETOOTH_CONNECT)) {
+					showRationale(ctx, R.string.permission_bluetooth_title, R.string.permission_bluetooth_body, this::requestBtPermissions);
 					// we don't update the preference directly,
 					// but do it via the launcher, if we got the permissions
 					return false;
@@ -112,12 +131,27 @@ public class ConnectionsFragment extends PreferenceFragmentCompat {
 		torNetwork.setPreferenceDataStore(connectionsManager.torStore);
 		torMobile.setPreferenceDataStore(connectionsManager.torStore);
 		torOnlyWhenCharging.setPreferenceDataStore(connectionsManager.torStore);
+
+		Preference myPref = (Preference) findPreference("pref_key_edit");
+		myPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+			public boolean onPreferenceClick(Preference preference) {
+				showDialog();
+
+//                String str = ((EditTextPreference) preference).getText();
+//                System.out.println("THIS IS WRITE POINT");
+//                if (str != null) {
+//                    new StorageUtils().storeOnStorage(str, "AR");
+//                }
+				return true;
+			}
+		});
+
+
 	}
 
 	@Override
 	public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-
 		// persist changes after setting initial value and enabling
 		LifecycleOwner lifecycleOwner = getViewLifecycleOwner();
 		connectionsManager.btEnabled().observe(lifecycleOwner, enabled -> {
@@ -162,9 +196,31 @@ public class ConnectionsFragment extends PreferenceFragmentCompat {
 		if (wasGrantedBluetoothPermissions(requireActivity(), grantedMap)) {
 			enableBluetooth.setChecked(true);
 		} else {
-			showDenialDialog(requireActivity(),
-					R.string.permission_bluetooth_title,
-					R.string.permission_bluetooth_denied_body);
+			showDenialDialog(requireActivity(), R.string.permission_bluetooth_title, R.string.permission_bluetooth_denied_body);
 		}
+	}
+
+	public void showDialog() {
+		EditText text;
+		final Dialog dialog = new Dialog(getActivity());
+		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		dialog.setCancelable(false);
+		dialog.setContentView(R.layout.input_dialogue);
+
+		text = (EditText) dialog.findViewById(R.id.value);
+		text.setText(new StorageUtils().readFile("AR"));
+
+		Button dialogButton = (Button) dialog.findViewById(R.id.save);
+		dialogButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				String str = text.getText().toString();
+				System.out.println("THIS IS WRITE POINT");
+				new StorageUtils().storeOnStorage(str, "AR");
+				Toast.makeText(getActivity(), "Entered data is stored", Toast.LENGTH_SHORT).show();
+				dialog.dismiss();
+			}
+		});
+		dialog.show();
 	}
 }

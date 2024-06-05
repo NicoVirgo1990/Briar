@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.widget.Toast;
 
 import org.briarproject.bramble.api.FeatureFlags;
+import org.briarproject.bramble.api.db.DatabaseComponent;
 import org.briarproject.bramble.api.db.DatabaseExecutor;
 import org.briarproject.bramble.api.db.DbException;
 import org.briarproject.bramble.api.db.TransactionManager;
@@ -93,6 +94,7 @@ class SettingsViewModel extends DbViewModel implements EventListener {
 	private final MutableLiveData<String> screenLockTimeout =
 			new MutableLiveData<>();
 
+
 	@Inject
 	SettingsViewModel(Application application,
 			@DatabaseExecutor Executor dbExecutor,
@@ -130,6 +132,8 @@ class SettingsViewModel extends DbViewModel implements EventListener {
 		eventBus.addListener(this);
 		loadSettings();
 		if (shouldEnableProfilePictures()) loadOwnIdentityInfo();
+
+
 	}
 
 	@Override
@@ -172,6 +176,13 @@ class SettingsViewModel extends DbViewModel implements EventListener {
 				handleException(e);
 			}
 		});
+	}
+
+	public void loadUserData() {
+		runOnDbThread(() -> {
+
+				}
+		);
 	}
 
 	@Override
@@ -251,7 +262,7 @@ class SettingsViewModel extends DbViewModel implements EventListener {
 	@AnyThread
 	private void onSetAvatarFailed() {
 		androidExecutor.runOnUiThread(() -> Toast.makeText(getApplication(),
-				R.string.change_profile_picture_failed_message, LENGTH_LONG)
+						R.string.change_profile_picture_failed_message, LENGTH_LONG)
 				.show());
 	}
 

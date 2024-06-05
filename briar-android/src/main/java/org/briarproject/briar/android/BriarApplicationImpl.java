@@ -35,48 +35,61 @@ import static java.util.logging.Logger.getLogger;
 import static org.briarproject.briar.android.TestingConstants.IS_DEBUG_BUILD;
 import static org.briarproject.briar.android.settings.DisplayFragment.PREF_THEME;
 
-public class BriarApplicationImpl extends Application
-		implements BriarApplication {
+public class BriarApplicationImpl extends Application implements BriarApplication
+{
 
-	private static final Logger LOG =
-			getLogger(BriarApplicationImpl.class.getName());
+	private static final Logger LOG = getLogger(BriarApplicationImpl.class.getName());
 
 	private AndroidComponent applicationComponent;
+
 	private volatile SharedPreferences prefs;
 
+	public static BriarApplicationImpl me;
+
+	public static BriarApplicationImpl getInstance()
+	{
+		if (me == null)
+		{
+			me = new BriarApplicationImpl();
+		}
+		return me;
+	}
+
 	@Override
-	protected void attachBaseContext(Context base) {
-		if (prefs == null)
-			prefs = PreferenceManager.getDefaultSharedPreferences(base);
+	protected void attachBaseContext(Context base)
+	{
+		if (prefs == null) prefs = PreferenceManager.getDefaultSharedPreferences(base);
 		// Loading the language needs to be done here.
 		Localizer.initialize(prefs);
-		super.attachBaseContext(
-				Localizer.getInstance().setLocale(base));
+		super.attachBaseContext(Localizer.getInstance().setLocale(base));
 		Localizer.getInstance().setLocale(this);
 		setTheme(base, prefs);
 	}
 
 	@Override
-	public void onCreate() {
+	public void onCreate()
+	{
 		super.onCreate();
 
 		if (IS_DEBUG_BUILD) enableStrictMode();
 
 		applicationComponent = createApplicationComponent();
-		UncaughtExceptionHandler exceptionHandler =
-				applicationComponent.exceptionHandler();
+		UncaughtExceptionHandler exceptionHandler = applicationComponent.exceptionHandler();
 		Thread.setDefaultUncaughtExceptionHandler(exceptionHandler);
 
 		Logger rootLogger = getLogger("");
 		Handler[] handlers = rootLogger.getHandlers();
 		// Disable the Android logger for release builds
-		for (Handler handler : handlers) rootLogger.removeHandler(handler);
-		if (IS_DEBUG_BUILD) {
+		for (Handler handler : handlers)
+			rootLogger.removeHandler(handler);
+		if (IS_DEBUG_BUILD)
+		{
 			// We can't set the level of the Android logger at runtime, so
 			// raise records to the logger's default level
 			rootLogger.addHandler(new LevelRaisingHandler(FINE, INFO));
 			// Restore the default handlers after the level raising handler
-			for (Handler handler : handlers) rootLogger.addHandler(handler);
+			for (Handler handler : handlers)
+				rootLogger.addHandler(handler);
 		}
 		CachingLogHandler logHandler = applicationComponent.logHandler();
 		rootLogger.addHandler(logHandler);
@@ -84,34 +97,35 @@ public class BriarApplicationImpl extends Application
 
 		LOG.info("Created");
 
+        me = this;
 		EmojiManager.install(new GoogleEmojiProvider());
 	}
 
-	protected AndroidComponent createApplicationComponent() {
-		AndroidComponent androidComponent = DaggerAndroidComponent.builder()
-				.appModule(new AppModule(this))
-				.build();
+	protected AndroidComponent createApplicationComponent()
+	{
+		AndroidComponent androidComponent = DaggerAndroidComponent.builder().appModule(new AppModule(this)).build();
 
 		// We need to load the eager singletons directly after making the
 		// dependency graphs
-		BrambleCoreEagerSingletons.Helper
-				.injectEagerSingletons(androidComponent);
-		BrambleAndroidEagerSingletons.Helper
-				.injectEagerSingletons(androidComponent);
+		BrambleCoreEagerSingletons.Helper.injectEagerSingletons(androidComponent);
+		BrambleAndroidEagerSingletons.Helper.injectEagerSingletons(androidComponent);
 		BriarCoreEagerSingletons.Helper.injectEagerSingletons(androidComponent);
 		AndroidEagerSingletons.Helper.injectEagerSingletons(androidComponent);
 		return androidComponent;
 	}
 
 	@Override
-	public void onConfigurationChanged(@NonNull Configuration newConfig) {
+	public void onConfigurationChanged(@NonNull Configuration newConfig)
+	{
 		super.onConfigurationChanged(newConfig);
 		Localizer.getInstance().setLocale(this);
 	}
 
-	private void setTheme(Context ctx, SharedPreferences prefs) {
+	private void setTheme(Context ctx, SharedPreferences prefs)
+	{
 		String theme = prefs.getString(PREF_THEME, null);
-		if (theme == null) {
+		if (theme == null)
+		{
 			// set default value
 			theme = getString(R.string.pref_theme_system_value);
 			prefs.edit().putString(PREF_THEME, theme).apply();
@@ -120,7 +134,8 @@ public class BriarApplicationImpl extends Application
 		UiUtils.setTheme(ctx, theme);
 	}
 
-	private void enableStrictMode() {
+	private void enableStrictMode()
+	{
 		ThreadPolicy.Builder threadPolicy = new ThreadPolicy.Builder();
 		threadPolicy.detectAll();
 		threadPolicy.penaltyLog();
@@ -132,29 +147,34 @@ public class BriarApplicationImpl extends Application
 	}
 
 	@Override
-	public BrambleAppComponent getBrambleAppComponent() {
+	public BrambleAppComponent getBrambleAppComponent()
+	{
 		return applicationComponent;
 	}
 
 	@Override
-	public AndroidComponent getApplicationComponent() {
+	public AndroidComponent getApplicationComponent()
+	{
 		return applicationComponent;
 	}
 
 	@Override
-	public SharedPreferences getDefaultSharedPreferences() {
+	public SharedPreferences getDefaultSharedPreferences()
+	{
 		return prefs;
 	}
 
 	@Override
-	public boolean isRunningInBackground() {
+	public boolean isRunningInBackground()
+	{
 		RunningAppProcessInfo info = new RunningAppProcessInfo();
 		ActivityManager.getMyMemoryState(info);
 		return (info.importance != IMPORTANCE_FOREGROUND);
 	}
 
 	@Override
-	public boolean isInstrumentationTest() {
+	public boolean isInstrumentationTest()
+	{
 		return false;
 	}
 }

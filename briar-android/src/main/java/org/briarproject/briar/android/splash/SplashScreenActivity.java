@@ -2,6 +2,7 @@ package org.briarproject.briar.android.splash;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.transition.Fade;
@@ -9,6 +10,7 @@ import android.transition.Fade;
 import org.briarproject.bramble.api.account.AccountManager;
 import org.briarproject.bramble.api.system.AndroidExecutor;
 import org.briarproject.briar.R;
+import org.briarproject.briar.android.BriarApplicationImpl;
 import org.briarproject.briar.android.activity.ActivityComponent;
 import org.briarproject.briar.android.activity.BaseActivity;
 import org.briarproject.nullsafety.MethodsNotNullByDefault;
@@ -39,6 +41,7 @@ public class SplashScreenActivity extends BaseActivity {
 	protected AccountManager accountManager;
 	@Inject
 	protected AndroidExecutor androidExecutor;
+
 
 	@Override
 	public void injectActivity(ActivityComponent component) {

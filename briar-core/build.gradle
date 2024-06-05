@@ -10,6 +10,7 @@ apply from: '../dagger.gradle'
 
 dependencies {
 	api project(':briar-api')
+	implementation fileTree(dir: 'libs', include: ['*.jar'])
 
 	implementation project(':bramble-core')
 
